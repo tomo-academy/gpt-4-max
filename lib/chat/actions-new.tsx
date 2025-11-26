@@ -119,6 +119,12 @@ async function submitUserMessage(content: string, imageBase64List?: { id: string
         ; (async () => {
             try {
                 console.log('Entered try block')
+                
+                // Check if OPENAI_API_KEY is set
+                if (!process.env.OPENAI_API_KEY) {
+                    throw new Error('OPENAI_API_KEY is not set. Please add it to your .env file.')
+                }
+                
                 const result = await experimental_streamText({
                     model: openai.chat('gpt-4-turbo'),
                     temperature: 0.5,
@@ -576,11 +582,26 @@ async function submitUserMessage(content: string, imageBase64List?: { id: string
                 textStream.done()
                 messageStream.done()
             } catch (e) {
-                console.error(e)
+                console.error('Error in submitUserMessage:', e)
 
-                const error = new Error(
-                    'The AI got rate limited, please try again later.'
-                )
+                let errorMessage = 'The AI got rate limited, please try again later.'
+                
+                if (e instanceof Error) {
+                    // Check for specific error types
+                    if (e.message.includes('OPENAI_API_KEY')) {
+                        errorMessage = 'OpenAI API key is not configured. Please add OPENAI_API_KEY to your .env file.'
+                    } else if (e.message.includes('401') || e.message.includes('Unauthorized')) {
+                        errorMessage = 'Invalid API key. Please check your OPENAI_API_KEY in the .env file.'
+                    } else if (e.message.includes('429') || e.message.includes('rate limit')) {
+                        errorMessage = 'Rate limit exceeded. Please try again later.'
+                    } else if (e.message.includes('quota')) {
+                        errorMessage = 'API quota exceeded. Please check your OpenAI account.'
+                    } else {
+                        errorMessage = e.message || 'An error occurred. Please try again.'
+                    }
+                }
+
+                const error = new Error(errorMessage)
                 uiStream.error(error)
                 textStream.error(error)
                 messageStream.error(error)
