@@ -126,7 +126,7 @@ async function submitUserMessage(content: string, imageBase64List?: { id: string
                 }
                 
                 const result = await experimental_streamText({
-                    model: openai.chat('gpt-4-turbo'),
+                    model: openai.chat('gpt-4o-mini'),
                     temperature: 0.5,
                     tools: {
                         webSearch: {
@@ -255,7 +255,7 @@ async function submitUserMessage(content: string, imageBase64List?: { id: string
                             var searchContentAI = ''
 
                             await experimental_streamText({
-                                model: openai.chat('gpt-4-turbo'),
+                                model: openai.chat('gpt-4o-mini'),
                                 system: `\
                 I found some search results for you based on the query: ${query}. Here are the top ${maxResults} results. 
 
